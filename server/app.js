@@ -16,12 +16,15 @@ const app = express();
 
 // MIDDLEWARE
 // Research Team - Set up CORS middleware here:
-// ...
+const cors = require("cors");
+
+
 app.use(express.json());
 app.use(morgan("dev"));
 app.use(express.static("public"));
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
+app.use(cors());
 
 
 // ROUTES - https://expressjs.com/en/starter/basic-routing.html
