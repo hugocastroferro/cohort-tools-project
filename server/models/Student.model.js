@@ -14,10 +14,10 @@ const studentSchema = new Schema({
   background: String,
   image: String,
   projects: [],
-  //   cohort: {
-  //     // type: Schema.Types.ObjectId,
-  //     // ref: "Cohort",
-  //   },
+  cohort: {
+    type: Schema.Types.ObjectId,
+    ref: "Cohort",
+  },
 });
 
 // MODEL

@@ -39,6 +39,9 @@ app.get("/docs", (req, res) => {
   res.sendFile(__dirname + "/views/docs.html");
 });
 
+// ROUTES - COHORTS:
+
+//GET - All cohorts in JSON format:
 app.get("/api/cohorts", (req, res) => {
   Cohort.find({})
     .then((cohorts) => {
@@ -51,6 +54,81 @@ app.get("/api/cohorts", (req, res) => {
     });
 });
 
+//GET - Specified cohort by id:
+app.get("/api/cohorts/:cohortId", (req, res, next) => {
+  const { cohortId } = req.params;
+
+  Cohort.findById(cohortId)
+    .then((cohortFromDB) => {
+      res.status(200).json(cohortFromDB)
+    })
+    .catch((error) => {
+      res.status(500).json("Error getting cohort.")
+    });
+});
+
+// POST - Create new cohort:
+app.post("/api/cohorts", (req, res) => {
+  const {
+    inProgress,
+    cohortSlug,
+    cohortName,
+    program,
+    campus,
+    startDate,
+    endDate,
+    programManager,
+    leadTeacher,
+    totalHours,
+  } = req.body;
+
+Cohort.create(newCohort) = {
+  inProgress,
+  cohortSlug,
+  cohortName,
+  program,
+  campus,
+  startDate,
+  endDate,
+  programManager,
+  leadTeacher,
+  totalHours,
+  }
+    .then((cohortFromDB) => {
+      res.status(201).json(cohortFromDB);
+    })
+    .catch((error) => {
+      res.status(500).json("Error creating a cohort in the DB.");
+    });
+});
+
+// PUT - Update specified cohort by id:
+app.get("/api/cohorts/:cohortId", (req, res) => {
+  
+  Cohort.findByIdAndUpdate(req.params.id, req.body, { new: true})
+    .then((updatedCohort) => {
+      res.status(200).json(updatedCohort);
+    })
+    .catch((error) => {
+      res.status(500).json("Error updating Cohort.")
+    });
+});
+
+// DELETE - Delete specified cohort by id:
+app.delete("/api/cohorts/:cohortId", (req, res, next) => {
+  const { cohortId } = req.params;
+
+  Cohort.findByIdAndDelete(cohortId)
+    .then(() => {
+      res.status(200).send();
+    })
+    .catch((error) => {
+      res.status(500).json("Error deleting Cohort.")
+    });
+});
+
+
+// GET - All students in JSON format:
 app.get("/api/students", (req, res) => {
   Student.find({})
     .then((students) => {
@@ -63,13 +141,93 @@ app.get("/api/students", (req, res) => {
     });
 });
 
-// app.get("/api/cohorts", (req, res) => {
-//   res.json(cohorts);
-// });
+// GET - All the students of a specified cohort in JSON format:
+app.get("/api/students/cohort/:cohortId", (req, res) => {
+  const { cohortId } = req.params;
 
-// app.get("/api/students", (req, res) => {
-//   res.json(students);
-// });
+  Student.find({ cohort: cohortId })
+    .then((students) => {
+      res.json(students);
+    })
+    .catch((error) => {
+      res.status(500).json({ error: "Failed to retrieve students for the specified cohort" });
+    });
+});
+
+// GET - Specified students by id:
+app.get("/api/students/:studentId", (req, res, next) => {
+  const { studentId } = req.params;
+
+  Student.findById(studentId)
+    .then((studentFromDB) => {
+      res.status(200).json(studentFromDB)
+    })
+    .catch((error) => {
+      res.status(500).json("Error getting Student.")
+    });
+});
+
+// POST - Create a new student with the respective cohort id:
+app.post("/api/students", (req, res) => {
+  const {
+    firstName,
+    lastName,
+    email,
+    phone,
+    linkedinUrl,
+    languages,
+    program,
+    background,
+    image,
+    projects,
+    cohort: cohortId,
+  } = req.body;
+
+Student.create(newstudent) = {
+  firstName,
+  lastName,
+  email,
+  phone,
+  linkedinUrl,
+  languages,
+  program,
+  background,
+  image,
+  projects,
+  cohort: cohortId,
+  }
+    .then((studentFromDB) => {
+      res.status(201).json(studentFromDB);
+    })
+    .catch((error) => {
+      res.status(500).json("Error creating a student in the DB.");
+    });
+});
+
+// PUT - Update specified student by id:
+app.get("/api/students/:studentId", (req, res) => {
+  
+  Student.findByIdAndUpdate(req.params.id, req.body, { new: true})
+    .then((updatedstudent) => {
+      res.status(200).json(updatedstudent);
+    })
+    .catch((error) => {
+      res.status(500).json("Error updating Student.")
+    });
+});
+
+// DELETE - Delete specified cohort by id:
+app.delete("/api/students/:studentId", (req, res, next) => {
+  const { studentId } = req.params;
+
+  SVGAnimatedAngletudent.findByIdAndDelete(studentId)
+    .then(() => {
+      res.status(200).send();
+    })
+    .catch((error) => {
+      res.status(500).json("Error deleting Student.")
+    });
+});
 
 // START SERVER
 app.listen(PORT, () => {
