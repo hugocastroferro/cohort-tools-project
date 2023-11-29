@@ -8,6 +8,8 @@ const mongoose = require("mongoose");
 const Cohort = require("./models/Cohort.model");
 const Student = require("./models/Student.model");
 
+
+
 mongoose
   .connect("mongodb://127.0.0.1:27017/cohort-tools-api")
   .then((x) => console.log(`Connected to Database: "${x.connections[0].name}"`))
@@ -131,26 +133,31 @@ app.delete("/api/cohorts/:cohortId", (req, res, next) => {
 // GET - All students in JSON format:
 app.get("/api/students", (req, res) => {
   Student.find({})
+    .populate("cohort") // populate 
     .then((students) => {
       console.log("Retrieved students ->", students);
       res.json(students);
     })
     .catch((error) => {
-      console.error("Error while retrieving students ->", students);
+      console.error("Error while retrieving students ->", error);
       res.status(500).send({ error: "Failed to retrieve students" });
     });
 });
+
 
 // GET - All the students of a specified cohort in JSON format:
 app.get("/api/students/cohort/:cohortId", (req, res) => {
   const { cohortId } = req.params;
 
   Student.find({ cohort: cohortId })
+    .populate("cohort") // populate 
     .then((students) => {
       res.json(students);
     })
     .catch((error) => {
-      res.status(500).json({ error: "Failed to retrieve students for the specified cohort" });
+      res.status(500).json({
+        error: "Failed to retrieve students for the specified cohort",
+      });
     });
 });
 
@@ -159,11 +166,12 @@ app.get("/api/students/:studentId", (req, res, next) => {
   const { studentId } = req.params;
 
   Student.findById(studentId)
+    .populate("cohort") // populate 
     .then((studentFromDB) => {
-      res.status(200).json(studentFromDB)
+      res.status(200).json(studentFromDB);
     })
     .catch((error) => {
-      res.status(500).json("Error getting Student.")
+      res.status(500).json("Error getting Student.");
     });
 });
 
@@ -196,23 +204,35 @@ Student.create(newstudent) = {
   projects,
   cohort: cohortId,
   }
-    .then((studentFromDB) => {
-      res.status(201).json(studentFromDB);
-    })
-    .catch((error) => {
-      res.status(500).json("Error creating a student in the DB.");
+  .then((studentFromDB) => {
+    // Populate 
+    Student.populate(studentFromDB, { path: "cohort" }, (err, populatedStudent) => {
+      if (err) {
+        console.error("Error populating cohort field", err);
+        res.status(500).json({ error: "Error creating a student in the DB." });
+      } else {
+        res.status(201).json(populatedStudent);
+      }
     });
+  })
+  .catch((error) => {
+    console.error("Error creating a student in the DB.", error);
+    res.status(500).json({ error: "Error creating a student in the DB." });
+  });
 });
 
+
 // PUT - Update specified student by id:
-app.get("/api/students/:studentId", (req, res) => {
-  
-  Student.findByIdAndUpdate(req.params.id, req.body, { new: true})
-    .then((updatedstudent) => {
-      res.status(200).json(updatedstudent);
+app.put("/api/students/:studentId", (req, res) => {
+  const { studentId } = req.params;
+
+  Student.findByIdAndUpdate(studentId, req.body, { new: true })
+    .populate("cohort") // populate 
+    .then((updatedStudent) => {
+      res.status(200).json(updatedStudent);
     })
     .catch((error) => {
-      res.status(500).json("Error updating Student.")
+      res.status(500).json("Error updating Student.");
     });
 });
 
@@ -220,14 +240,15 @@ app.get("/api/students/:studentId", (req, res) => {
 app.delete("/api/students/:studentId", (req, res, next) => {
   const { studentId } = req.params;
 
-  SVGAnimatedAngletudent.findByIdAndDelete(studentId)
+  Student.findByIdAndDelete(studentId)
     .then(() => {
       res.status(200).send();
     })
     .catch((error) => {
-      res.status(500).json("Error deleting Student.")
+      res.status(500).json("Error deleting Student.");
     });
 });
+
 
 // START SERVER
 app.listen(PORT, () => {
