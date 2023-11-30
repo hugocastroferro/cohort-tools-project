@@ -84,7 +84,7 @@ app.post("/api/cohorts", (req, res) => {
     totalHours,
   } = req.body;
 
-Cohort.create(newCohort) = {
+Cohort.create({ 
   inProgress,
   cohortSlug,
   cohortName,
@@ -94,27 +94,30 @@ Cohort.create(newCohort) = {
   endDate,
   programManager,
   leadTeacher,
-  totalHours,
-  }
+  totalHours
+})  
     .then((cohortFromDB) => {
       res.status(201).json(cohortFromDB);
     })
     .catch((error) => {
+      console.log(error)
       res.status(500).json("Error creating a cohort in the DB.");
     });
 });
 
 // PUT - Update specified cohort by id:
-app.get("/api/cohorts/:cohortId", (req, res) => {
+app.put("/api/cohorts/:cohortId", (req, res) => {
   
-  Cohort.findByIdAndUpdate(req.params.id, req.body, { new: true})
+  Cohort.findByIdAndUpdate(req.params.cohortId, req.body, { new: true})
     .then((updatedCohort) => {
+      console.log(req.body, updatedCohort)
       res.status(200).json(updatedCohort);
     })
     .catch((error) => {
       res.status(500).json("Error updating Cohort.")
     });
 });
+
 
 // DELETE - Delete specified cohort by id:
 app.delete("/api/cohorts/:cohortId", (req, res, next) => {
