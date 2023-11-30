@@ -1,5 +1,4 @@
 const express = require("express");
-const { errorHandler, notFoundHandler } = require("./middleware/error-handling");
 const morgan = require("morgan");
 const cookieParser = require("cookie-parser");
 const PORT = 5005;
@@ -248,9 +247,11 @@ app.delete("/api/students/:studentId", (req, res, next) => {
     });
 });
 
+const { errorHandler, notFoundHandler } = require("./middleware/error-handling");
 
-app.use(errorHandler);
+
 app.use(notFoundHandler);
+app.use(errorHandler);
 
 
 // START SERVER
