@@ -194,7 +194,7 @@ app.post("/api/students", (req, res) => {
     cohort: cohortId,
   } = req.body;
 
-Student.create(newstudent) = {
+Student.create({
   firstName,
   lastName,
   email,
@@ -206,7 +206,8 @@ Student.create(newstudent) = {
   image,
   projects,
   cohort: cohortId,
-  }
+  })
+  
   .then((studentFromDB) => {
     // Populate 
     Student.populate(studentFromDB, { path: "cohort" }, (err, populatedStudent) => {
