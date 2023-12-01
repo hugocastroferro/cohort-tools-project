@@ -1,3 +1,4 @@
+require("dotenv").config();
 const express = require("express");
 const morgan = require("morgan");
 const cookieParser = require("cookie-parser");
@@ -8,8 +9,6 @@ const mongoose = require("mongoose");
 const Cohort = require("./models/Cohort.model");
 const Student = require("./models/Student.model");
 
-
-
 mongoose
   .connect("mongodb://127.0.0.1:27017/cohort-tools-api")
   .then((x) => console.log(`Connected to Database: "${x.connections[0].name}"`))
@@ -17,7 +16,6 @@ mongoose
 
 // STATIC DATA
 // Devs Team - Import the provided files with JSON data of students and cohorts here:
-// ...
 
 // INITIALIZE EXPRESS APP - https://expressjs.com/en/4x/api.html#express
 const app = express();
@@ -32,10 +30,10 @@ app.use(express.static("public"));
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(cors());
+const { isAuthenticated } = require("./middleware/jwt.middleware");
 
 // ROUTES - https://expressjs.com/en/starter/basic-routing.html
 // Devs Team - Start working on the routes here:
-// ...
 
 app.get("/docs", (req, res) => {
   res.sendFile(__dirname + "/views/docs.html");
@@ -51,7 +49,7 @@ app.get("/api/cohorts", (req, res) => {
       res.json(cohorts);
     })
     .catch((error) => {
-      next({...error, message: "Failed to retrieve cohorts"});
+      next({ ...error, message: "Failed to retrieve cohorts" });
     });
 });
 
@@ -61,10 +59,10 @@ app.get("/api/cohorts/:cohortId", (req, res, next) => {
 
   Cohort.findById(cohortId)
     .then((cohortFromDB) => {
-      res.status(200).json(cohortFromDB)
+      res.status(200).json(cohortFromDB);
     })
     .catch((error) => {
-      next({...error, message: "Error getting cohort." });
+      next({ ...error, message: "Error getting cohort." });
     });
 });
 
@@ -83,39 +81,37 @@ app.post("/api/cohorts", (req, res) => {
     totalHours,
   } = req.body;
 
-Cohort.create({ 
-  inProgress,
-  cohortSlug,
-  cohortName,
-  program,
-  campus,
-  startDate,
-  endDate,
-  programManager,
-  leadTeacher,
-  totalHours
-})  
+  Cohort.create({
+    inProgress,
+    cohortSlug,
+    cohortName,
+    program,
+    campus,
+    startDate,
+    endDate,
+    programManager,
+    leadTeacher,
+    totalHours,
+  })
     .then((cohortFromDB) => {
       res.status(201).json(cohortFromDB);
     })
     .catch((error) => {
-      next({...error, message: "Error creating a cohort in the DB." });
+      next({ ...error, message: "Error creating a cohort in the DB." });
     });
 });
 
 // PUT - Update specified cohort by id:
 app.put("/api/cohorts/:cohortId", (req, res) => {
-  
-  Cohort.findByIdAndUpdate(req.params.cohortId, req.body, { new: true})
+  Cohort.findByIdAndUpdate(req.params.cohortId, req.body, { new: true })
     .then((updatedCohort) => {
-      console.log(req.body, updatedCohort)
+      console.log(req.body, updatedCohort);
       res.status(200).json(updatedCohort);
     })
     .catch((error) => {
-      next({...error, message: "Error updating Cohort." });
+      next({ ...error, message: "Error updating Cohort." });
     });
 });
-
 
 // DELETE - Delete specified cohort by id:
 app.delete("/api/cohorts/:cohortId", (req, res, next) => {
@@ -126,36 +122,39 @@ app.delete("/api/cohorts/:cohortId", (req, res, next) => {
       res.status(200).send();
     })
     .catch((error) => {
-      next({...error, message: "Error deleting Cohort." });
+      next({ ...error, message: "Error deleting Cohort." });
     });
 });
 
+// ROUTES - STUDENTS:
 
 // GET - All students in JSON format:
 app.get("/api/students", (req, res) => {
   Student.find({})
-    .populate("cohort") // populate 
+    .populate("cohort") // populate
     .then((students) => {
       console.log("Retrieved students ->", students);
       res.json(students);
     })
     .catch((error) => {
-      next({...error, message: "Failed to retrieve students" });
+      next({ ...error, message: "Failed to retrieve students" });
     });
 });
-
 
 // GET - All the students of a specified cohort in JSON format:
 app.get("/api/students/cohort/:cohortId", (req, res) => {
   const { cohortId } = req.params;
 
   Student.find({ cohort: cohortId })
-    .populate("cohort") // populate 
+    .populate("cohort") // populate
     .then((students) => {
       res.json(students);
     })
     .catch((error) => {
-      next({...error, message: "Failed to retrieve students for the specified cohort"});
+      next({
+        ...error,
+        message: "Failed to retrieve students for the specified cohort",
+      });
     });
 });
 
@@ -164,12 +163,12 @@ app.get("/api/students/:studentId", (req, res, next) => {
   const { studentId } = req.params;
 
   Student.findById(studentId)
-    .populate("cohort") // populate 
+    .populate("cohort") // populate
     .then((studentFromDB) => {
       res.status(200).json(studentFromDB);
     })
     .catch((error) => {
-      next({...error, message: "Error getting Student." });
+      next({ ...error, message: "Error getting Student." });
     });
 });
 
@@ -189,48 +188,53 @@ app.post("/api/students", (req, res) => {
     cohort: cohortId,
   } = req.body;
 
-Student.create({
-  firstName,
-  lastName,
-  email,
-  phone,
-  linkedinUrl,
-  languages,
-  program,
-  background,
-  image,
-  projects,
-  cohort: cohortId,
+  Student.create({
+    firstName,
+    lastName,
+    email,
+    phone,
+    linkedinUrl,
+    languages,
+    program,
+    background,
+    image,
+    projects,
+    cohort: cohortId,
   })
-  
-  .then((studentFromDB) => {
-    // Populate 
-    Student.populate(studentFromDB, { path: "cohort" }, (err, populatedStudent) => {
-      if (err) {
-        console.error("Error populating cohort field", err);
-        res.status(500).json({ error: "Error creating a student in the DB." });
-      } else {
-        res.status(201).json(populatedStudent);
-      }
-    });
-  })
-  .catch((error) => {
-    next({...error, message: "Error creating a student in the DB."  });
-  });
-});
 
+    .then((studentFromDB) => {
+      // Populate
+      Student.populate(
+        studentFromDB,
+        { path: "cohort" },
+        (err, populatedStudent) => {
+          if (err) {
+            console.error("Error populating cohort field", err);
+            res
+              .status(500)
+              .json({ error: "Error creating a student in the DB." });
+          } else {
+            res.status(201).json(populatedStudent);
+          }
+        }
+      );
+    })
+    .catch((error) => {
+      next({ ...error, message: "Error creating a student in the DB." });
+    });
+});
 
 // PUT - Update specified student by id:
 app.put("/api/students/:studentId", (req, res) => {
   const { studentId } = req.params;
 
   Student.findByIdAndUpdate(studentId, req.body, { new: true })
-    .populate("cohort") // populate 
+    .populate("cohort") // populate
     .then((updatedStudent) => {
       res.status(200).json(updatedStudent);
     })
     .catch((error) => {
-      next({...error, message: "Error updating Student."  });
+      next({ ...error, message: "Error updating Student." });
     });
 });
 
@@ -243,16 +247,31 @@ app.delete("/api/students/:studentId", (req, res, next) => {
       res.status(200).send();
     })
     .catch((error) => {
-      next({...error, message: "Error deleting Student." });
+      next({ ...error, message: "Error deleting Student." });
     });
 });
 
-const { errorHandler, notFoundHandler } = require("./middleware/error-handling");
+// ROUTE - USER:
 
+const { isAuthenticated } = require("./../middleware/jwt.middleware");
+
+router.get("/:id", isAuthenticated, async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id);
+    console.log(user);
+    res.status(200).json(user);
+  } catch (err) {
+    console.log(err);
+  }
+});
+
+const {
+  errorHandler,
+  notFoundHandler,
+} = require("./middleware/error-handling");
 
 app.use(notFoundHandler);
 app.use(errorHandler);
-
 
 // START SERVER
 app.listen(PORT, () => {
