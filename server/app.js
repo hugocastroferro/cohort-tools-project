@@ -8,6 +8,10 @@ const students = require("./students.json");
 const mongoose = require("mongoose");
 const Cohort = require("./models/Cohort.model");
 const Student = require("./models/Student.model");
+const authRoute = require("./routes/auth.routes")
+
+
+
 
 mongoose
   .connect("mongodb://127.0.0.1:27017/cohort-tools-api")
@@ -30,7 +34,6 @@ app.use(express.static("public"));
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(cors());
-const { isAuthenticated } = require("./middleware/jwt.middleware");
 
 // ROUTES - https://expressjs.com/en/starter/basic-routing.html
 // Devs Team - Start working on the routes here:
@@ -40,6 +43,12 @@ app.get("/docs", (req, res) => {
 });
 
 // ROUTES - COHORTS:
+
+app.use("/auth", authRoute)
+
+
+
+
 
 //GET - All cohorts in JSON format:
 app.get("/api/cohorts", (req, res) => {
@@ -253,9 +262,9 @@ app.delete("/api/students/:studentId", (req, res, next) => {
 
 // ROUTE - USER:
 
-const { isAuthenticated } = require("./../middleware/jwt.middleware");
+const { isAuthenticated } = require("./middleware/jwt.middleware.js");
 
-router.get("/:id", isAuthenticated, async (req, res) => {
+app.get("/:id", isAuthenticated, async (req, res) => {
   try {
     const user = await User.findById(req.params.id);
     console.log(user);
